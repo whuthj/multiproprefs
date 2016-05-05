@@ -36,8 +36,10 @@ public class MPSharedPrefsProvider extends ContentProvider {
         sUriMatcher.addURI(AUTHORITY, "string/*/*", PREFS_STRING);
         sUriMatcher.addURI(AUTHORITY, "integer/*/*", PREFS_INT);
         sUriMatcher.addURI(AUTHORITY, "long/*/*", PREFS_LONG);
-
     }
+
+    private static String[] PREFERENCE_COLUMNS = {PREFS_VALUE};
+    private static Map<String, SharedPrefsUtils> sPreferences = new HashMap<>();
 
     private static class SharedPrefsModel {
         String name;
@@ -147,8 +149,6 @@ public class MPSharedPrefsProvider extends ContentProvider {
         return 0;
     }
 
-    private static String[] PREFERENCE_COLUMNS = {PREFS_VALUE};
-
     private <T> MatrixCursor preferenceToCursor(T value) {
         MatrixCursor matrixCursor = new MatrixCursor(PREFERENCE_COLUMNS, 1);
         MatrixCursor.RowBuilder builder = matrixCursor.newRow();
@@ -192,14 +192,12 @@ public class MPSharedPrefsProvider extends ContentProvider {
         getIEasySharedPrefs(name).setString(kString, vString);
     }
 
-    private static Map<String, ISharedPrefs> sPreferences = new HashMap<>();
-
-    private ISharedPrefs getIEasySharedPrefs(String name) {
+    private SharedPrefsUtils getIEasySharedPrefs(String name) {
         if (TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("getIEasySharedPrefs name is null!!!");
         }
         if (sPreferences.get(name) == null) {
-            ISharedPrefs pref = new SharedPrefsImpl(getContext(), name);
+            SharedPrefsUtils pref = new SharedPrefsUtils(getContext(), name);
             sPreferences.put(name, pref);
         }
         return sPreferences.get(name);
