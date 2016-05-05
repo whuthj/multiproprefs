@@ -7,8 +7,9 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class MPSharedPrefsProvider extends ContentProvider {
@@ -191,7 +192,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
         getIEasySharedPrefs(name).setString(kString, vString);
     }
 
-    private static Map<String, ISharedPrefs> sPreferences = new ArrayMap<>();
+    private static Map<String, ISharedPrefs> sPreferences = new HashMap<>();
 
     private ISharedPrefs getIEasySharedPrefs(String name) {
         if (TextUtils.isEmpty(name)) {
