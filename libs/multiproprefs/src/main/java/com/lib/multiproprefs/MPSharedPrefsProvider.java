@@ -71,23 +71,23 @@ public class MPSharedPrefsProvider extends ContentProvider {
         SharedPrefsModel model = getModelByUri(uri);
         switch (sUriMatcher.match(uri)) {
             case PREFS_BOOLEAN:
-                if (getIEasySharedPrefs(model.getName()).hasKey(model.getKey())) {
-                    cursor = preferenceToCursor(getIEasySharedPrefs(model.getName()).getBoolean(model.getKey(), false) ? 1 : 0);
+                if (getSharedPrefs(model.getName()).hasKey(model.getKey())) {
+                    cursor = preferenceToCursor(getSharedPrefs(model.getName()).getValue(model.getKey(), false) ? 1 : 0);
                 }
                 break;
             case PREFS_STRING:
-                if (getIEasySharedPrefs(model.getName()).hasKey(model.getKey())) {
-                    cursor = preferenceToCursor(getIEasySharedPrefs(model.getName()).getString(model.getKey(), ""));
+                if (getSharedPrefs(model.getName()).hasKey(model.getKey())) {
+                    cursor = preferenceToCursor(getSharedPrefs(model.getName()).getValue(model.getKey(), ""));
                 }
                 break;
             case PREFS_INT:
-                if (getIEasySharedPrefs(model.getName()).hasKey(model.getKey())) {
-                    cursor = preferenceToCursor(getIEasySharedPrefs(model.getName()).getInt(model.getKey(), -1));
+                if (getSharedPrefs(model.getName()).hasKey(model.getKey())) {
+                    cursor = preferenceToCursor(getSharedPrefs(model.getName()).getValue(model.getKey(), -1));
                 }
                 break;
             case PREFS_LONG:
-                if (getIEasySharedPrefs(model.getName()).hasKey(model.getKey())) {
-                    cursor = preferenceToCursor(getIEasySharedPrefs(model.getName()).getLong(model.getKey(), -1));
+                if (getSharedPrefs(model.getName()).hasKey(model.getKey())) {
+                    cursor = preferenceToCursor(getSharedPrefs(model.getName()).getValue(model.getKey(), -1));
                 }
                 break;
         }
@@ -115,7 +115,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
             case PREFS_INT:
                 SharedPrefsModel model = getModelByUri(uri);
                 if (model != null) {
-                    getIEasySharedPrefs(model.getName()).remove(model.getKey());
+                    getSharedPrefs(model.getName()).remove(model.getKey());
                 }
                 break;
             default:
@@ -156,45 +156,9 @@ public class MPSharedPrefsProvider extends ContentProvider {
         return matrixCursor;
     }
 
-    private void setInt(String name, ContentValues values) {
-        if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
-        }
-        String kInteger = values.getAsString(PREFS_KEY);
-        int vInteger = values.getAsInteger(PREFS_VALUE);
-        getIEasySharedPrefs(name).setInt(kInteger, vInteger);
-    }
-
-    private void setBoolean(String name, ContentValues values) {
-        if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
-        }
-        String kBoolean = values.getAsString(PREFS_KEY);
-        boolean vBoolean = values.getAsBoolean(PREFS_VALUE);
-        getIEasySharedPrefs(name).setBoolean(kBoolean, vBoolean);
-    }
-
-    private void setLong(String name, ContentValues values) {
-        if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
-        }
-        String kLong = values.getAsString(PREFS_KEY);
-        long vLong = values.getAsLong(PREFS_VALUE);
-        getIEasySharedPrefs(name).setLong(kLong, vLong);
-    }
-
-    private void setString(String name, ContentValues values) {
-        if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
-        }
-        String kString = values.getAsString(PREFS_KEY);
-        String vString = values.getAsString(PREFS_VALUE);
-        getIEasySharedPrefs(name).setString(kString, vString);
-    }
-
-    private SharedPrefsUtils getIEasySharedPrefs(String name) {
+    private SharedPrefsUtils getSharedPrefs(String name) {
         if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("getIEasySharedPrefs name is null!!!");
+            throw new IllegalArgumentException("getSharedPrefs name is null!!!");
         }
         if (sPreferences.get(name) == null) {
             SharedPrefsUtils pref = new SharedPrefsUtils(getContext(), name);
@@ -229,5 +193,41 @@ public class MPSharedPrefsProvider extends ContentProvider {
                 return MPSharedPrefsProvider.CONTENT_PREFS_STRING_URI;
         }
         throw new IllegalStateException("UnSupport PrefsType : " + type);
+    }
+
+    private void setInt(String name, ContentValues values) {
+        if (values == null) {
+            throw new IllegalArgumentException(" values is null!!!");
+        }
+        String kInteger = values.getAsString(PREFS_KEY);
+        int vInteger = values.getAsInteger(PREFS_VALUE);
+        getSharedPrefs(name).setValue(kInteger, vInteger);
+    }
+
+    private void setBoolean(String name, ContentValues values) {
+        if (values == null) {
+            throw new IllegalArgumentException(" values is null!!!");
+        }
+        String kBoolean = values.getAsString(PREFS_KEY);
+        boolean vBoolean = values.getAsBoolean(PREFS_VALUE);
+        getSharedPrefs(name).setValue(kBoolean, vBoolean);
+    }
+
+    private void setLong(String name, ContentValues values) {
+        if (values == null) {
+            throw new IllegalArgumentException(" values is null!!!");
+        }
+        String kLong = values.getAsString(PREFS_KEY);
+        long vLong = values.getAsLong(PREFS_VALUE);
+        getSharedPrefs(name).setValue(kLong, vLong);
+    }
+
+    private void setString(String name, ContentValues values) {
+        if (values == null) {
+            throw new IllegalArgumentException(" values is null!!!");
+        }
+        String kString = values.getAsString(PREFS_KEY);
+        String vString = values.getAsString(PREFS_VALUE);
+        getSharedPrefs(name).setValue(kString, vString);
     }
 }
