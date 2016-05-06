@@ -59,6 +59,32 @@ public class MPSharedPrefsProvider extends ContentProvider {
         }
     }
 
+    public static Uri buildUri(String name, String key, int type) {
+        StringBuilder strUri = new StringBuilder();
+
+        switch (type) {
+            case MPSharedPrefsProvider.PREFS_BOOLEAN:
+                strUri.append(MPSharedPrefsProvider.CONTENT_PREFS_BOOLEAN_URI);
+                break;
+            case MPSharedPrefsProvider.PREFS_INT:
+                strUri.append(MPSharedPrefsProvider.CONTENT_PREFS_INT_URI);
+                break;
+            case MPSharedPrefsProvider.PREFS_LONG:
+                strUri.append(MPSharedPrefsProvider.CONTENT_PREFS_LONG_URI);
+                break;
+            case MPSharedPrefsProvider.PREFS_STRING:
+                strUri.append(MPSharedPrefsProvider.CONTENT_PREFS_STRING_URI);
+                break;
+            default:
+                throw new IllegalStateException("unsupport type:" + type);
+        }
+        strUri.append(name);
+        strUri.append("/");
+        strUri.append(key);
+
+        return Uri.parse(strUri.toString());
+    }
+
     @Override
     public boolean onCreate() {
         return true;
@@ -103,7 +129,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        throw new IllegalStateException("insert unsupport!!!");
+        throw new IllegalStateException("unsupport insert!");
     }
 
     @Override
@@ -121,15 +147,18 @@ public class MPSharedPrefsProvider extends ContentProvider {
             default:
                 throw new IllegalStateException(" unsupported uri : " + uri);
         }
+
         return 0;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SharedPrefsModel model = getModelByUri(uri);
+
         if(model == null) {
             throw new IllegalArgumentException("update prefModel is null");
         }
+
         switch (sUriMatcher.match(uri)) {
             case PREFS_BOOLEAN:
                 setBoolean(model.getName(), values);
@@ -146,6 +175,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
             default:
                 throw new IllegalStateException("update unsupported uri : " + uri);
         }
+
         return 0;
     }
 
@@ -158,7 +188,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
 
     private SharedPrefsUtils getSharedPrefs(String name) {
         if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("getSharedPrefs name is null!!!");
+            throw new IllegalArgumentException("getSharedPrefs name is null!");
         }
         if (sPreferences.get(name) == null) {
             SharedPrefsUtils pref = new SharedPrefsUtils(getContext(), name);
@@ -176,28 +206,9 @@ public class MPSharedPrefsProvider extends ContentProvider {
         return new SharedPrefsModel(name, key);
     }
 
-
-    public static Uri buildUri(String name, String key, int type) {
-        return Uri.parse(getUriByType(type) + name + "/" + key);
-    }
-
-    private static String getUriByType(int type) {
-        switch (type) {
-            case MPSharedPrefsProvider.PREFS_BOOLEAN:
-                return MPSharedPrefsProvider.CONTENT_PREFS_BOOLEAN_URI;
-            case MPSharedPrefsProvider.PREFS_INT:
-                return MPSharedPrefsProvider.CONTENT_PREFS_INT_URI;
-            case MPSharedPrefsProvider.PREFS_LONG:
-                return MPSharedPrefsProvider.CONTENT_PREFS_LONG_URI;
-            case MPSharedPrefsProvider.PREFS_STRING:
-                return MPSharedPrefsProvider.CONTENT_PREFS_STRING_URI;
-        }
-        throw new IllegalStateException("UnSupport PrefsType : " + type);
-    }
-
     private void setInt(String name, ContentValues values) {
         if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
+            throw new IllegalArgumentException("values is null!");
         }
         String kInteger = values.getAsString(PREFS_KEY);
         int vInteger = values.getAsInteger(PREFS_VALUE);
@@ -206,7 +217,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
 
     private void setBoolean(String name, ContentValues values) {
         if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
+            throw new IllegalArgumentException("values is null!");
         }
         String kBoolean = values.getAsString(PREFS_KEY);
         boolean vBoolean = values.getAsBoolean(PREFS_VALUE);
@@ -215,7 +226,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
 
     private void setLong(String name, ContentValues values) {
         if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
+            throw new IllegalArgumentException("values is null!");
         }
         String kLong = values.getAsString(PREFS_KEY);
         long vLong = values.getAsLong(PREFS_VALUE);
@@ -224,7 +235,7 @@ public class MPSharedPrefsProvider extends ContentProvider {
 
     private void setString(String name, ContentValues values) {
         if (values == null) {
-            throw new IllegalArgumentException(" values is null!!!");
+            throw new IllegalArgumentException("values is null!");
         }
         String kString = values.getAsString(PREFS_KEY);
         String vString = values.getAsString(PREFS_VALUE);

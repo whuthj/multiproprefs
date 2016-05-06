@@ -1,1 +1,1 @@
-include ':app', ':libs:multiproprefs'
+include ':app', ':libs:multiproprefs', ':libs:easyipc'
