@@ -13,10 +13,12 @@ import android.widget.TextView;
 
 import com.lib.multiproprefs.MPSharedPrefs;
 import com.lib.multiproprefs_demo.R;
-import com.lib.multiproprefs_demo.aidl.IMyService;
+import com.lib.multiproprefs_demo.aidl.vo.Person;
+import com.lib.multiproprefs_demo.services.IMyService;
 import com.lib.multiproprefs_demo.services.DaemonService;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -55,7 +57,17 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             mIMyService = IMyService.Stub.asInterface(service);
             try {
-                mIMyService.getPerson();
+                final List<Person> lstPersion = mIMyService.getPerson();
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (lstPersion != null && lstPersion.size() > 0) {
+                            TextView tv = (TextView) findViewById(R.id.txt_1);
+                            tv.setText(lstPersion.get(0).name + " age:" + lstPersion.get(0).age);
+                        }
+                    }
+                });
+
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -106,7 +118,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            mIMyService.getPerson();
+            final List<Person> lstPersion = mIMyService.getPerson();
+            if (lstPersion != null && lstPersion.size() > 0) {
+                TextView tv_1 = (TextView) findViewById(R.id.txt_1);
+                tv_1.setText("name:" + lstPersion.get(0).name + " age:" + lstPersion.get(0).age);
+            }
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }

@@ -9,7 +9,6 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.lib.multiproprefs.MPSharedPrefs;
-import com.lib.multiproprefs_demo.aidl.IMyService;
 import com.lib.multiproprefs_demo.aidl.vo.Person;
 
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ public class DaemonService extends Service {
     }
 
     private List<Person> mPersons = new ArrayList<Person>();
-    //这里实现了aidl中的抽象函数
     private final IMyService.Stub mBinder = new IMyService.Stub() {
 
         @Override
@@ -66,6 +64,13 @@ public class DaemonService extends Service {
     };
 
     public DaemonService() {
+        Person person = new Person();
+        person.age = 20;
+        person.sno = 1;
+        person.name = "test";
+        person.sex = 2;
+
+        mPersons.add(person);
     }
 
     @Override
