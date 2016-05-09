@@ -20,7 +20,12 @@
             android:name=".services.DaemonService"
             android:process=":daemon"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.action.DEFAULT" />
+                <action android:name="com.lib.multiproprefs_demo.services.DaemonService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
