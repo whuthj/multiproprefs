@@ -16,6 +16,7 @@ LOCAL_CFLAGS += -fvisibility=hidden
 LOCAL_CFLAGS += -g
 
 #LOCAL_CPPFLAGS := -std=c++11
+LOCAL_CFLAGS := -std=gnu++11
 
 LOCAL_SRC_FILES := \
 Hello.cpp\

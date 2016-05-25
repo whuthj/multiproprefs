@@ -1,9 +1,15 @@
 #include "Hello.h"
 #include <vector>
 #include <string>
+#include <thread>
 #include "StringUtils.h"
 
 using namespace::std;
+
+void threadFunc1()
+{
+
+}
 
 JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_fromJNI(JNIEnv* env, jobject obj)
 {
@@ -19,9 +25,13 @@ JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_from
         ++itr;
     }
 
+    thread t(threadFunc1);
+    t.join();
+
     vector<string> vec_1;
     StringUtils::Split(str, "#", vec_1, false);
     str = vec_1[2];
 
-    return env->NewStringUTF(str.c_str());
+    auto val = env->NewStringUTF(str.c_str());
+    return val;
 }
