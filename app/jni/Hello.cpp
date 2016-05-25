@@ -2,11 +2,15 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <future>
+#include <tuple>
 #include "StringUtils.h"
 
 using namespace::std;
 
-void threadFunc1()
+jobject getInstance(JNIEnv* env, jclass obj_class);
+
+void threadFunc1(tuple<int, float, double> t)
 {
 
 }
@@ -25,13 +29,24 @@ JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_from
         ++itr;
     }
 
-    thread t(threadFunc1);
+    auto tuple_1 = tuple<int, float, double>(1, 1.2f, 1.23);
+    thread t(threadFunc1, tuple_1);
     t.join();
 
-    vector<string> vec_1;
-    StringUtils::Split(str, "#", vec_1, false);
-    str = vec_1[2];
+    thread t_1([&]() {
+        vector<string> vec_1;
+        StringUtils::Split(str, "#", vec_1, false);
+        str = vec_1[2];
+    });
+    t_1.join();
 
     auto val = env->NewStringUTF(str.c_str());
     return val;
+}
+
+jobject getInstance(JNIEnv* env, jclass obj_class)
+{
+    jmethodID construction_id = env->GetMethodID(obj_class, "<init>", "()V");
+    jobject obj = env->NewObject(obj_class, construction_id);
+    return obj;
 }

@@ -142,6 +142,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="Android.mk" />
+    <None Include="Application.mk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Hello.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Hello.h" />
+    <ClInclude Include="StringUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
