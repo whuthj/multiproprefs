@@ -1,0 +1,18 @@
+[
+  {
+    "pkgName": "com.hujun.helloplugin",
+    "version": "1.0",
+    "activities": [
+    ],
+    "services": [
+    ],
+    "receivers": [
+    ],
+    "contentProviders": [
+    ],
+    "dependency": [],
+    "md5": "e8530ae2a7c1235e67b9c20fa0996a5a",
+    "size": 1234406,
+    "hasSO": false
+  }
+]
