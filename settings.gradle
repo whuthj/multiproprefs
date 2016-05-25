@@ -1,1 +1,1 @@
-include ':app', ':libs:mpprefs', ':libs:easyipc'
+include ':app', ':libs:mpprefs', ':libs:easyipc', ':libs:ACDDCore', ':libs:common', ':libs:helloplugin', ':libs:pluginclub'

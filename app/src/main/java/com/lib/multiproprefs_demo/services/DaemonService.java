@@ -9,7 +9,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.lib.multiproprefs.MPSharedPrefs;
-import com.lib.multiproprefs_demo.aidl.vo.Person;
+import com.lib.multiproprefs_demo.vo.Person;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -21,3 +21,13 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+def getSdkDir() {
+    def SDK_DIR = System.getenv("ANDROID_HOME")
+    if (SDK_DIR == null) {
+        Properties props = new Properties()
+        props.load(new FileInputStream(file("local.properties")))
+        SDK_DIR = props.get('sdk.dir');
+    }
+    return SDK_DIR
+}

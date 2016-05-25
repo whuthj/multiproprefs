@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId "com.hujun.helloplugin"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.00x6a"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    provided files("${getSdkDir()}/platforms/android-23/data/layoutlib.jar")
+    provided files("${project(":libs:common").buildDir}/common.jar")
+    compile 'com.android.support:appcompat-v7:23.3.0'
+}
+
+android.applicationVariants.all { variant ->
+    Task compileTask = tasks.findByName("compile${variant.buildType.name.capitalize()}JavaWithJavac")
+    compileTask.dependsOn(':libs:common:compileModuleAsJar')
+}

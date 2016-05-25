@@ -3,9 +3,9 @@ package com.lib.multiproprefs_demo.services;
 public interface IMyService extends android.os.IInterface
 {
     /** Local-side IPC implementation stub class. */
-    public static abstract class Stub extends android.os.Binder implements com.lib.multiproprefs_demo.services.IMyService
+    public static abstract class Stub extends android.os.Binder implements IMyService
     {
-        private static final java.lang.String DESCRIPTOR = "com.lib.multiproprefs_demo.services.IMyService";
+        private static final String DESCRIPTOR = "com.lib.multiproprefs_demo.services.IMyService";
         /** Construct the stub at attach it to the interface. */
         public Stub()
         {
@@ -50,9 +50,9 @@ public interface IMyService extends android.os.IInterface
                 case TRANSACTION_addPerson:
                 {
                     data.enforceInterface(DESCRIPTOR);
-                    com.lib.multiproprefs_demo.aidl.vo.Person _arg0;
+                    com.lib.multiproprefs_demo.vo.Person _arg0;
                     if ((0!=data.readInt())) {
-                        _arg0 = com.lib.multiproprefs_demo.aidl.vo.Person.CREATOR.createFromParcel(data);
+                        _arg0 = com.lib.multiproprefs_demo.vo.Person.CREATOR.createFromParcel(data);
                     }
                     else {
                         _arg0 = null;
@@ -75,7 +75,7 @@ public interface IMyService extends android.os.IInterface
             {
                 return mRemote;
             }
-            public java.lang.String getInterfaceDescriptor()
+            public String getInterfaceDescriptor()
             {
                 return DESCRIPTOR;
             }
@@ -88,7 +88,7 @@ public interface IMyService extends android.os.IInterface
                     _data.writeInterfaceToken(DESCRIPTOR);
                     mRemote.transact(Stub.TRANSACTION_getPerson, _data, _reply, 0);
                     _reply.readException();
-                    java.lang.ClassLoader cl = (java.lang.ClassLoader)this.getClass().getClassLoader();
+                    ClassLoader cl = (ClassLoader)this.getClass().getClassLoader();
                     _result = _reply.readArrayList(cl);
                 }
                 finally {
@@ -97,7 +97,7 @@ public interface IMyService extends android.os.IInterface
                 }
                 return _result;
             }
-            @Override public void addPerson(com.lib.multiproprefs_demo.aidl.vo.Person person) throws android.os.RemoteException
+            @Override public void addPerson(com.lib.multiproprefs_demo.vo.Person person) throws android.os.RemoteException
             {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
@@ -123,5 +123,5 @@ public interface IMyService extends android.os.IInterface
         static final int TRANSACTION_addPerson = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
     }
     public java.util.List getPerson() throws android.os.RemoteException;
-    public void addPerson(com.lib.multiproprefs_demo.aidl.vo.Person person) throws android.os.RemoteException;
+    public void addPerson(com.lib.multiproprefs_demo.vo.Person person) throws android.os.RemoteException;
 }

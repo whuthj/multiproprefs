@@ -1,28 +1,55 @@
 package com.lib.multiproprefs_demo.act;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutCompat;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.lib.multiproprefs_demo.vo.Person;
 import com.lib.multiproprefs.MPSharedPrefs;
 import com.lib.multiproprefs_demo.R;
-import com.lib.multiproprefs_demo.aidl.vo.Person;
-import com.lib.multiproprefs_demo.services.IMyService;
+import com.hujun.common.*;
 import com.lib.multiproprefs_demo.services.DaemonService;
+import com.lib.multiproprefs_demo.services.IMyService;
 
+import org.acdd.framework.ACDD;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
+
+    private static final String libSoName = "test";
+
+    static {
+        try {
+            System.loadLibrary(libSoName);
+        } catch (UnsatisfiedLinkError e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("JniMissingFunction")
+    public native String fromJNI();
 
     private static class MyHandler extends Handler {
         private WeakReference<MainActivity> mAct;
@@ -84,6 +111,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        String str =  fromJNI();
+        TextView tv_1 = (TextView) findViewById(R.id.textView);
+        tv_1.setText(str);
+
+        Button btn = (Button) findViewById(R.id.button);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent intPlugin = new Intent();
+                    intPlugin.setClassName(MainActivity.this, "com.hujun.helloplugin.MainActivity");
+                    startActivity(intPlugin);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -98,6 +143,51 @@ public class MainActivity extends AppCompatActivity {
         Intent it = new Intent("com.lib.multiproprefs_demo.services.DaemonService");
         it.setPackage("com.lib.multiproprefs");
         bindService(it, mSerConn, BIND_AUTO_CREATE);
+
+        initPlugin();
+
+        try {
+            Drawable drawable = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getTestDrawable(MainActivity.this);
+
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+            imageView.setImageDrawable(drawable);
+
+            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout);
+            View view = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getHelloView(MainActivity.this);
+            linearLayout.addView(view);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void initPlugin() {
+        FileInputStream ins = null;
+        try {
+            File deployFile = new File("/sdcard/helloplugin.so");
+            ins = new FileInputStream(new File(deployFile.getAbsolutePath()));
+            ACDD.getInstance().installBundle("com.hujun.helloplugin", ins);
+        } catch (Exception exe) {
+            exe.printStackTrace();
+        } finally {
+            try {
+                if (ins != null) ins.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            Class<?> clazz = Class.forName("com.hujun.helloplugin.PluginApplication",
+                    false, ACDD.getInstance().getBundleClassLoader("com.hujun.helloplugin"));
+            Method initMethod = clazz.getMethod("init");
+            IPluginCommand cmd = (IPluginCommand)initMethod.invoke(null);
+
+            String str =  (String) cmd.invoke(123);
+            TextView tv_1 = (TextView) findViewById(R.id.txt_1);
+            tv_1.setText(str);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -123,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
                 TextView tv_1 = (TextView) findViewById(R.id.txt_1);
                 tv_1.setText("name:" + lstPersion.get(0).name + " age:" + lstPersion.get(0).age);
             }
-
         } catch (RemoteException e) {
             e.printStackTrace();
         }
