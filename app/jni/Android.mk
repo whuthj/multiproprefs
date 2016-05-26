@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := test
 
 LOCAL_C_INCLUDES += $(JNI_H_INCLUDE)
-LOCAL_LDLIBS += -llog
+LOCAL_LDLIBS += -llog -ljnigraphics
 
 LOCAL_CFLAGS += -Wno-psabi
 LOCAL_CFLAGS += -D__USE_FILE_OFFSET64

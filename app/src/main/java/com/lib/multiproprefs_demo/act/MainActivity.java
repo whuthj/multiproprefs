@@ -5,6 +5,8 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.IBinder;
@@ -50,6 +52,9 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("JniMissingFunction")
     public native String fromJNI();
+
+    @SuppressWarnings("JniMissingFunction")
+    public native void grayPhoto(Bitmap in, Bitmap out);
 
     private static class MyHandler extends Handler {
         private WeakReference<MainActivity> mAct;
@@ -148,9 +153,13 @@ public class MainActivity extends Activity {
 
         try {
             Drawable drawable = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getTestDrawable(MainActivity.this);
+            BitmapDrawable bd = (BitmapDrawable) drawable;
+            Bitmap in = bd.getBitmap();
+            Bitmap out = Bitmap.createBitmap(in.getWidth(), in.getHeight(), Bitmap.Config.ALPHA_8);
+            grayPhoto(in, out);
 
             ImageView imageView = (ImageView) findViewById(R.id.imageView);
-            imageView.setImageDrawable(drawable);
+            imageView.setImageBitmap(out);
 
             LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout);
             View view = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getHelloView(MainActivity.this);
