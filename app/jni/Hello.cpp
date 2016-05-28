@@ -15,7 +15,7 @@ void threadFunc1(tuple<int, float, double> t)
 
 }
 
-JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_fromJNI(JNIEnv* env, jobject obj)
+JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_ndk_NdkFunc_fromJNI(JNIEnv* env, jobject obj)
 {
     vector<string> vec;
     vec.push_back("From#NDK");
@@ -44,7 +44,7 @@ JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_from
     return val;
 }
 
-JNIEXPORT void JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_grayPhoto(
+JNIEXPORT void JNICALL Java_com_lib_multiproprefs_1demo_ndk_NdkFunc_grayPhoto(
     JNIEnv *env, jobject activity, jobject bmOriginal, jobject bmGray)
 {
     AndroidBitmapInfo origanalColor;

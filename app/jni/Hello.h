@@ -24,8 +24,8 @@ typedef struct
 extern "C" {
 #endif
 
-JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_fromJNI(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_com_lib_multiproprefs_1demo_act_MainActivity_grayPhoto(
+JNIEXPORT jstring JNICALL Java_com_lib_multiproprefs_1demo_ndk_NdkFunc_fromJNI(JNIEnv* env, jobject obj);
+JNIEXPORT void JNICALL Java_com_lib_multiproprefs_1demo_ndk_NdkFunc_grayPhoto(
     JNIEnv *env, jobject activity, jobject bmOriginal, jobject bmGray);
 
 #ifdef __cplusplus

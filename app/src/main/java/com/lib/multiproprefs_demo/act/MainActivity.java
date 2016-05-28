@@ -1,229 +1,162 @@
 package com.lib.multiproprefs_demo.act;
 
-import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.RemoteException;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.lib.multiproprefs_demo.vo.Person;
-import com.lib.multiproprefs.MPSharedPrefs;
 import com.lib.multiproprefs_demo.R;
-import com.hujun.common.*;
-import com.lib.multiproprefs_demo.services.DaemonService;
-import com.lib.multiproprefs_demo.services.IMyService;
+import com.lib.multiproprefs_demo.adapter.FragmentAdapter;
+import com.lib.multiproprefs_demo.fragment.MSPrefsFragment;
+import com.lib.multiproprefs_demo.fragment.NdkFragment;
+import com.lib.multiproprefs_demo.fragment.PluginFragment;
+import com.lib.multiproprefs_demo.fragment.VideoFragment;
 
-import org.acdd.framework.ACDD;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity implements ViewPager.OnPageChangeListener, View.OnClickListener {
 
-    private static final String libSoName = "test";
+    private List<Fragment> mFragmentList = new ArrayList<>();
+    private FragmentAdapter mFragmentAdapter;
+    private ViewPager mPageVp;
 
-    static {
-        try {
-            System.loadLibrary(libSoName);
-        } catch (UnsatisfiedLinkError e) {
-            e.printStackTrace();
-        }
-    }
+    private MSPrefsFragment mMsprefsFrag;
+    private NdkFragment mNdkFrag;
+    private PluginFragment mPluginFrag;
+    private VideoFragment mVideoFrag;
 
-    @SuppressWarnings("JniMissingFunction")
-    public native String fromJNI();
-
-    @SuppressWarnings("JniMissingFunction")
-    public native void grayPhoto(Bitmap in, Bitmap out);
-
-    private static class MyHandler extends Handler {
-        private WeakReference<MainActivity> mAct;
-
-        public MyHandler(MainActivity act) {
-            mAct = new WeakReference<MainActivity>(act);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity act = mAct.get();
-            if (null == act) {
-                return;
-            }
-
-            switch (msg.what) {
-                case 1:
-                    act.refreshText();
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    private MyHandler mHandler = new MyHandler(this);
-
-    private Timer mTimer = new Timer();
-
-    private IMyService mIMyService = null;
-    private final ServiceConnection mSerConn = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mIMyService = IMyService.Stub.asInterface(service);
-            try {
-                final List<Person> lstPersion = mIMyService.getPerson();
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (lstPersion != null && lstPersion.size() > 0) {
-                            TextView tv = (TextView) findViewById(R.id.txt_1);
-                            tv.setText(lstPersion.get(0).name + " age:" + lstPersion.get(0).age);
-                        }
-                    }
-                });
-
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mIMyService = null;
-        }
-    };
+    private View mllTabMsprefs;
+    private View mllTabNdk;
+    private View mllTabPlugin;
+    private View mllTabVideo;
+    private TextView mTvMsprefs;
+    private TextView mTvNdk;
+    private TextView mTvPlugin;
+    private TextView mTvVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        String str =  fromJNI();
-        TextView tv_1 = (TextView) findViewById(R.id.textView);
-        tv_1.setText(str);
-
-        Button btn = (Button) findViewById(R.id.button);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent intPlugin = new Intent();
-                    intPlugin.setClassName(MainActivity.this, "com.hujun.helloplugin.MainActivity");
-                    startActivity(intPlugin);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Message msg = new Message();
-                msg.what = 1;
-                mHandler.sendMessage(msg);
-            }
-        }, 1000, 1000);
-
-        DaemonService.startService(getApplicationContext());
-
-        Intent it = new Intent("com.lib.multiproprefs_demo.services.DaemonService");
-        it.setPackage("com.lib.multiproprefs");
-        bindService(it, mSerConn, BIND_AUTO_CREATE);
-
-        initPlugin();
-
-        try {
-            Drawable drawable = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getTestDrawable(MainActivity.this);
-            BitmapDrawable bd = (BitmapDrawable) drawable;
-            Bitmap in = bd.getBitmap();
-            Bitmap out = Bitmap.createBitmap(in.getWidth(), in.getHeight(), Bitmap.Config.ALPHA_8);
-            grayPhoto(in, out);
-
-            ImageView imageView = (ImageView) findViewById(R.id.imageView);
-            imageView.setImageBitmap(out);
-
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout);
-            View view = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getHelloView(MainActivity.this);
-            linearLayout.addView(view);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        findById();
+        init();
     }
 
-    private void initPlugin() {
-        FileInputStream ins = null;
-        try {
-            File deployFile = new File("/sdcard/helloplugin.so");
-            ins = new FileInputStream(new File(deployFile.getAbsolutePath()));
-            ACDD.getInstance().installBundle("com.hujun.helloplugin", ins);
-        } catch (Exception exe) {
-            exe.printStackTrace();
-        } finally {
-            try {
-                if (ins != null) ins.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    private void findById() {
+        mPageVp = (ViewPager) this.findViewById(R.id.id_page_vp);
 
-        try {
-            Class<?> clazz = Class.forName("com.hujun.helloplugin.PluginApplication",
-                    false, ACDD.getInstance().getBundleClassLoader("com.hujun.helloplugin"));
-            Method initMethod = clazz.getMethod("init");
-            IPluginCommand cmd = (IPluginCommand)initMethod.invoke(null);
+        mllTabMsprefs = this.findViewById(R.id.ll_tab_msprefs);
+        mllTabNdk = this.findViewById(R.id.ll_tab_ndk);
+        mllTabPlugin = this.findViewById(R.id.ll_tab_plugin);
+        mllTabVideo = this.findViewById(R.id.ll_tab_video);
 
-            String str =  (String) cmd.invoke(123);
-            TextView tv_1 = (TextView) findViewById(R.id.txt_1);
-            tv_1.setText(str);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+        mTvMsprefs = (TextView) this.findViewById(R.id.tv_msprefs);
+        mTvNdk = (TextView) this.findViewById(R.id.tv_ndk_test);
+        mTvPlugin = (TextView) this.findViewById(R.id.tv_plugin_test);
+        mTvVideo = (TextView) this.findViewById(R.id.tv_video_test);
+    }
+
+    private void init() {
+        buildFragmentAdapter();
+        mPageVp.setAdapter(mFragmentAdapter);
+        mPageVp.setCurrentItem(2);
+        mPageVp.addOnPageChangeListener(this);
+
+        mllTabMsprefs.setOnClickListener(this);
+        mllTabNdk.setOnClickListener(this);
+        mllTabPlugin.setOnClickListener(this);
+        mllTabVideo.setOnClickListener(this);
+
+        mTvPlugin.setTextColor(Color.BLUE);
+    }
+
+    private void buildFragmentAdapter() {
+        mMsprefsFrag = new MSPrefsFragment();
+        mNdkFrag = new NdkFragment();
+        mPluginFrag = new PluginFragment();
+        mVideoFrag = new VideoFragment();
+        mFragmentList.add(mMsprefsFrag);
+        mFragmentList.add(mNdkFrag);
+        mFragmentList.add(mPluginFrag);
+        mFragmentList.add(mVideoFrag);
+        mFragmentAdapter = new FragmentAdapter(getSupportFragmentManager(), mFragmentList);
     }
 
     @Override
     protected void onDestroy() {
-        if (null != mIMyService) {
-
-        }
         super.onDestroy();
     }
 
-    private void refreshText() {
-        MPSharedPrefs sharedPrefs = new MPSharedPrefs(getApplicationContext(), "test");
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-        TextView tv = (TextView)findViewById(R.id.txt);
-        tv.setText("多进程SharedPrefs--" + sharedPrefs.getString("value", ""));
+    }
 
-        if (null == mIMyService) {
-            return;
+    @Override
+    public void onPageSelected(int position) {
+        resetTabTextColor();
+        mPageVp.setCurrentItem(position);
+
+        switch (position) {
+            case 0:
+                mTvMsprefs.setTextColor(Color.BLUE);
+                break;
+            case 1:
+                mTvNdk.setTextColor(Color.BLUE);
+                break;
+            case 2:
+                mTvPlugin.setTextColor(Color.BLUE);
+                break;
+            case 3:
+                mTvVideo.setTextColor(Color.BLUE);
+                break;
+            default:
+                break;
         }
-        try {
-            final List<Person> lstPersion = mIMyService.getPerson();
-            if (lstPersion != null && lstPersion.size() > 0) {
-                TextView tv_1 = (TextView) findViewById(R.id.txt_1);
-                tv_1.setText("name:" + lstPersion.get(0).name + " age:" + lstPersion.get(0).age);
-            }
-        } catch (RemoteException e) {
-            e.printStackTrace();
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        resetTabTextColor();
+        setTabTextColor(v.getId());
+    }
+
+    private void setTabTextColor(int id) {
+        switch (id) {
+            case R.id.ll_tab_msprefs:
+                mPageVp.setCurrentItem(0);
+                mTvMsprefs.setTextColor(Color.BLUE);
+                break;
+            case R.id.ll_tab_ndk:
+                mPageVp.setCurrentItem(1);
+                mTvNdk.setTextColor(Color.BLUE);
+                break;
+            case R.id.ll_tab_plugin:
+                mPageVp.setCurrentItem(2);
+                mTvPlugin.setTextColor(Color.BLUE);
+                break;
+            case R.id.ll_tab_video:
+                mPageVp.setCurrentItem(3);
+                mTvVideo.setTextColor(Color.BLUE);
+                break;
+            default:
+                break;
         }
+    }
+
+    private void resetTabTextColor() {
+        mTvMsprefs.setTextColor(Color.BLACK);
+        mTvNdk.setTextColor(Color.BLACK);
+        mTvPlugin.setTextColor(Color.BLACK);
+        mTvVideo.setTextColor(Color.BLACK);
     }
 }
