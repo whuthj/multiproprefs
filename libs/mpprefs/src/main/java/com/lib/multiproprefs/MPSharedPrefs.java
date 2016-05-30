@@ -4,6 +4,8 @@ import android.content.Context;
 
 public class MPSharedPrefs {
 
+    public static final String VERSION = "1.1";
+
     private Context mContext;
     private String mName;
 

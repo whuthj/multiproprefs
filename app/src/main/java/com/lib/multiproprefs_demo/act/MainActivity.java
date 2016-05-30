@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import com.lib.multiproprefs_demo.R;
 import com.lib.multiproprefs_demo.adapter.FragmentAdapter;
+import com.lib.multiproprefs_demo.animation.RotateDownPageTransformer;
+import com.lib.multiproprefs_demo.animation.ZoomOutPageTransformer;
 import com.lib.multiproprefs_demo.fragment.MSPrefsFragment;
 import com.lib.multiproprefs_demo.fragment.NdkFragment;
 import com.lib.multiproprefs_demo.fragment.PluginFragment;
@@ -65,6 +67,7 @@ public class MainActivity extends FragmentActivity implements ViewPager.OnPageCh
         mPageVp.setAdapter(mFragmentAdapter);
         mPageVp.setCurrentItem(2);
         mPageVp.addOnPageChangeListener(this);
+        mPageVp.setPageTransformer(true, new RotateDownPageTransformer());
 
         mllTabMsprefs.setOnClickListener(this);
         mllTabNdk.setOnClickListener(this);

@@ -22,6 +22,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    compile project(':libs:mpprefs')
     provided files("${getSdkDir()}/platforms/android-23/data/layoutlib.jar")
     provided files("${project(":libs:common").buildDir}/common.jar")
     compile 'com.android.support:appcompat-v7:23.3.0'

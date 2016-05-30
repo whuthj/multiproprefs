@@ -15,10 +15,12 @@ import android.widget.TextView;
 
 import com.hujun.common.IPluginCommand;
 import com.hujun.common.PluginCommand;
+import com.lib.multiproprefs.MPSharedPrefs;
 import com.lib.multiproprefs_demo.R;
 import com.lib.multiproprefs_demo.ndk.NdkFunc;
 
 import org.acdd.framework.ACDD;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +41,9 @@ public class PluginFragment extends BaseFragment {
         // Inflate the layout for this fragment
         mMainView = inflater.inflate(R.layout.activity_plugin, container, false);
         init();
+
+        TextView tv = (TextView) mMainView.findViewById(R.id.tvHaHa);
+        tv.setText(MPSharedPrefs.VERSION);
 
         return mMainView;
     }
