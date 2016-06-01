@@ -20,6 +20,9 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="org.libsdl.app.SDLActivity">
+        </activity>
+
         <service
             android:name="com.lib.multiproprefs_demo.services.DaemonService"
             android:enabled="true"
