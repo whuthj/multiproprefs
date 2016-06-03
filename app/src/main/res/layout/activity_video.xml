@@ -4,12 +4,6 @@
     android:layout_height="match_parent"
     tools:context="com.lib.multiproprefs_demo.fragment.VideoFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
-
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -18,5 +12,16 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText"
+        android:text="rtmp://live.hkstv.hk.lxdns.com/live/hks"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/btnView"
+        android:layout_toStartOf="@+id/btnView" />
 
 </RelativeLayout>

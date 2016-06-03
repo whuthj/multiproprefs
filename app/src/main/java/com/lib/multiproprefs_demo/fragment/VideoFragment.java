@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 
 import com.lib.multiproprefs_demo.R;
 
@@ -14,6 +15,7 @@ import org.libsdl.app.SDLActivity;
 public class VideoFragment extends BaseFragment {
 
     private Button mBtnView;
+    private EditText mEditText;
 
     public VideoFragment() {
         // Required empty public constructor
@@ -33,16 +35,24 @@ public class VideoFragment extends BaseFragment {
 
     private void findViewById() {
         mBtnView = (Button) mMainView.findViewById(R.id.btnView);
+        mEditText = (EditText) mMainView.findViewById(R.id.editText);
     }
 
     private void init() {
         mBtnView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent it = new Intent(getActivity(), SDLActivity.class);
-                startActivity(it);
+                String strUrl = mEditText.getText().toString();
+                startPlay(strUrl);
             }
         });
+    }
+
+    private void startPlay(String fullPath)
+    {
+        Intent intent = new Intent(getActivity(), SDLActivity.class);
+        intent.putExtra("filename", fullPath);
+        startActivity(intent);
     }
 
 }
