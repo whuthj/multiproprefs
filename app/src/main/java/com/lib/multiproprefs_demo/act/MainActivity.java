@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.lib.multiproprefs_demo.R;
 import com.lib.multiproprefs_demo.adapter.FragmentAdapter;
-import com.lib.multiproprefs_demo.animation.CubePageTransformer;
 import com.lib.multiproprefs_demo.animation.RotateDownPageTransformer;
 import com.lib.multiproprefs_demo.animation.ZoomOutPageTransformer;
 import com.lib.multiproprefs_demo.fragment.MSPrefsFragment;

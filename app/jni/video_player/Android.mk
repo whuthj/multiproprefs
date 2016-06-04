@@ -24,5 +24,8 @@ LOCAL_STATIC_LIBRARIES += avdevice \
 
 LOCAL_LDLIBS := -ldl -lGLESv2 -llog
 
+#ndk-r11c
+LOCAL_LDLIBS += -Wl,--no-warn-shared-textrel
+
 #finally
 include $(BUILD_SHARED_LIBRARY)
