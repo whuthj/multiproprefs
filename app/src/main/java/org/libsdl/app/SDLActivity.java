@@ -18,7 +18,9 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsoluteLayout;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.os.*;
 import android.util.Log;
@@ -28,9 +30,9 @@ import android.graphics.drawable.Drawable;
 import android.media.*;
 import android.hardware.*;
 
-/**
- SDL Activity
- */
+import com.lib.multiproprefs_demo.R;
+
+@SuppressWarnings("JniMissingFunction")
 public class SDLActivity extends Activity {
     private static final String TAG = "SDL";
 
@@ -46,6 +48,7 @@ public class SDLActivity extends Activity {
     protected static SDLSurface mSurface;
     protected static View mTextEdit;
     protected static ViewGroup mLayout;
+    protected static SeekBar mSeekBar;
     protected static SDLJoystickHandler mJoystickHandler;
     protected static String[] args;
 
@@ -176,8 +179,36 @@ public class SDLActivity extends Activity {
             mJoystickHandler = new SDLJoystickHandler();
         }
 
-        mLayout = new AbsoluteLayout(this);
-        mLayout.addView(mSurface);
+        mLayout = (FrameLayout) LayoutInflater.from(this).inflate(R.layout.activity_video_player, null);
+        LinearLayout linearLayout = (LinearLayout) mLayout.findViewById(R.id.videoLayout);
+        linearLayout.addView(mSurface);
+
+        TextView tvFileFullName = (TextView) mLayout.findViewById(R.id.tvFileFullName);
+        tvFileFullName.setText(args[0]);
+
+        final Button btnControl = (Button) mLayout.findViewById(R.id.btnControl);
+        btnControl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!SDLActivity.mIsPaused) {
+                    btnControl.setBackgroundResource(android.R.drawable.ic_media_play);
+                    handlePause();
+                } else {
+                    btnControl.setBackgroundResource(android.R.drawable.ic_media_pause);
+                    handleResume();
+                }
+            }
+        });
+
+        final Button btnQuit = (Button) mLayout.findViewById(R.id.btnQuit);
+        btnQuit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        mSeekBar = (SeekBar) mLayout.findViewById(R.id.seekBar);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -587,19 +618,24 @@ public class SDLActivity extends Activity {
      * This method is called by SDL using JNI.
      */
     public static void audioWriteShortBuffer(short[] buffer) {
-        for (int i = 0; i < buffer.length; ) {
-            int result = mAudioTrack.write(buffer, i, buffer.length - i);
-            if (result > 0) {
-                i += result;
-            } else if (result == 0) {
-                try {
-                    Thread.sleep(1);
-                } catch(InterruptedException e) {
-                    // Nom nom
+        int len = buffer.length;
+        for (int i = 0; i < len; ) {
+            try {
+                int result = mAudioTrack.write(buffer, i, len - i);
+                if (result > 0) {
+                    i += result;
+                } else if (result == 0) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        // Nom nom
+                    }
+                } else {
+                    Log.w("SDL", "SDL audio: error return from write(short)");
+                    return;
                 }
-            } else {
-                Log.w("SDL", "SDL audio: error return from write(short)");
-                return;
+            } catch (Exception ex) {
+                Log.w("SDL", ex.getMessage());
             }
         }
     }
