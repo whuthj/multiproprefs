@@ -1534,6 +1534,7 @@ static int do_scale_picture(VideoState *is, Frame *vp, AVFrame *src_frame)
 	
 	return 0;
 }
+
 static void alloc_picture(VideoState *is, AVFrame *src)
 {
     Frame *vp;
