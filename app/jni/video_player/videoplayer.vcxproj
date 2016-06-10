@@ -110,6 +110,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cmdutils.c" />
+    <ClCompile Include="ffplay2.c" />
+    <ClCompile Include="jni.c" />
+    <ClCompile Include="SDL_android_main.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cmdutils.h" />
+    <ClInclude Include="cmdutils_common_opts.h" />
+    <ClInclude Include="colorspace.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
