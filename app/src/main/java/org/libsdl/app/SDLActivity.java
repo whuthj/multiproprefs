@@ -8,9 +8,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.*;
 
 import android.app.*;
 import android.content.*;
+import android.os.Handler;
 import android.view.*;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
@@ -57,6 +61,11 @@ public class SDLActivity extends Activity {
 
     // Audio
     protected static AudioTrack mAudioTrack;
+
+    protected static int mCurProgress = 0;
+    protected static long mCurTime = 0;
+    protected static long mFullTime = 0;
+    protected static Handler mHandler = new Handler();
 
     /**
      * This method is called by SDL before loading the native shared libraries.
@@ -115,6 +124,8 @@ public class SDLActivity extends Activity {
         mIsSurfaceReady = false;
         mHasFocus = true;
     }
+
+    protected static Timer mTimer = new Timer();
 
     // Setup
     @Override
@@ -297,6 +308,8 @@ public class SDLActivity extends Activity {
             Log.v("SDL", "Finished waiting for SDL thread");
         }
 
+        mTimer.cancel();
+
         super.onDestroy();
         // Reset everything in case the user re opens the app
         SDLActivity.initialize();
@@ -463,6 +476,8 @@ public class SDLActivity extends Activity {
                                                int naxes, int nhats, int nballs);
     public static native int nativeRemoveJoystick(int device_id);
     public static native String nativeGetHint(String name);
+    public static native long getFullTime();
+    public static native long getCurTime();
 
     /**
      * This method is called by SDL using JNI.
@@ -966,6 +981,24 @@ class SDLMain implements Runnable {
     @Override
     public void run() {
         // Runs SDL_main()
+        SDLActivity.mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                SDLActivity.mSeekBar.setMax(100);
+                SDLActivity.mSeekBar.setProgress(0);
+                SDLActivity.mFullTime = SDLActivity.getFullTime();
+
+                SDLActivity.mTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        SDLActivity.mCurTime += 10;
+                        SDLActivity.mCurProgress = (int)(SDLActivity.mCurTime * 100 / SDLActivity.mFullTime);
+                        SDLActivity.mSeekBar.setProgress(SDLActivity.mCurProgress);
+                    }
+                }, 10, 10);
+            }
+        }, 100);
+
         SDLActivity.nativeInit(SDLActivity.mSingleton.getArguments());
 
         //Log.v("SDL", "SDL thread terminated");
