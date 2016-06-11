@@ -45,7 +45,7 @@
 #include "libavutil/parseutils.h"
 #include "libavutil/samplefmt.h"
 #include "libavutil/avassert.h"
-#include "libavutil/avtime.h"
+#include "libavutil/time.h"
 #include "libavformat/avformat.h"
 #include "libavdevice/avdevice.h"
 #include "libswscale/swscale.h"
@@ -335,6 +335,8 @@ static int show_status = 0;
 static int av_sync_type = AV_SYNC_AUDIO_MASTER;
 static int64_t start_time = AV_NOPTS_VALUE;
 static int64_t duration = AV_NOPTS_VALUE;
+static int64_t cur_time = AV_NOPTS_VALUE;
+static int64_t full_time = AV_NOPTS_VALUE;
 static int fast = 0;
 static int genpts = 0;
 static int lowres = 0;
@@ -2644,6 +2646,16 @@ static int is_realtime(AVFormatContext *s)
     return 0;
 }
 
+jlong Java_org_libsdl_app_SDLActivity_getFullTime(JNIEnv* env, jclass cls)
+{
+    return full_time;
+}
+
+jlong Java_org_libsdl_app_SDLActivity_getCurTime(JNIEnv* env, jclass cls)
+{
+    return cur_time;
+}
+
 /* this thread gets the stream from the disk or the network */
 static int read_thread(void *arg)
 {
@@ -2698,6 +2710,8 @@ static int read_thread(void *arg)
     orig_nb_streams = ic->nb_streams;
 
     err = avformat_find_stream_info(ic, opts);
+    full_time = ic->duration;
+    cur_time = 0;
 
     for (i = 0; i < orig_nb_streams; i++)
         av_dict_free(&opts[i]);
@@ -2903,6 +2917,7 @@ static int read_thread(void *arg)
             SDL_LockMutex(wait_mutex);
             SDL_CondWaitTimeout(is->continue_read_thread, wait_mutex, 10);
             SDL_UnlockMutex(wait_mutex);
+            cur_time += 10;
             continue;
         } else {
             eof = 0;
@@ -3589,11 +3604,7 @@ int main(int argc, char **argv)
     if (!input_filename) {
         SDL_Log("An input file must be specified\n");
         SDL_Log("Use -h to get full help or, even better, run 'man %s'\n", program_name);
-		#if 1 /*dbg only*/
-        input_filename = "/sdcard/Video/ZhaoTong_mosaic.ts";
-	    #else
 		exit(1);
-		#endif
     }
 
     if (display_disable) {
