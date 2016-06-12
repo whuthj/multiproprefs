@@ -62,6 +62,7 @@
 
 #include <SDL.h>
 #include <SDL_thread.h>
+#include <jni.h>
 
 
 #include "cmdutils.h"

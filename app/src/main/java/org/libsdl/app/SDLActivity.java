@@ -985,8 +985,8 @@ class SDLMain implements Runnable {
             @Override
             public void run() {
                 SDLActivity.mSeekBar.setMax(100);
-                SDLActivity.mSeekBar.setProgress(0);
-                SDLActivity.mFullTime = SDLActivity.getFullTime();
+                SDLActivity.mSeekBar.setProgress(50);
+                SDLActivity.mFullTime = SDLActivity.getFullTime() / 1000;
 
                 SDLActivity.mTimer.schedule(new TimerTask() {
                     @Override
@@ -997,7 +997,7 @@ class SDLMain implements Runnable {
                     }
                 }, 10, 10);
             }
-        }, 100);
+        }, 1000);
 
         SDLActivity.nativeInit(SDLActivity.mSingleton.getArguments());
 
