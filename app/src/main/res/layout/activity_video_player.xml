@@ -19,11 +19,9 @@
 
         <SeekBar
             android:layout_width="match_parent"
-            android:layout_height="10dp"
+            android:layout_height="wrap_content"
             android:id="@+id/seekBar"
-            android:clickable="true"
-            android:thumb="@drawable/abc_seekbar_thumb_material"
-            android:background="@drawable/abc_seekbar_track_material" />
+            android:clickable="true" />
 
         <LinearLayout
             android:orientation="horizontal"

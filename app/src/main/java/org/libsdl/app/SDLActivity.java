@@ -10,7 +10,6 @@ import java.util.List;
 import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.*;
 
 import android.app.*;
 import android.content.*;
@@ -220,6 +219,24 @@ public class SDLActivity extends Activity {
         });
 
         mSeekBar = (SeekBar) mLayout.findViewById(R.id.seekBar);
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int progress = seekBar.getProgress();
+                float x = (float) (progress) / (float)(100);
+                SDLActivity.mCurTime = (long) (SDLActivity.mFullTime * x);
+                SDLActivity.onNativeTouch(0, 0, 0, x, 0, 0);
+            }
+        });
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -984,9 +1001,14 @@ class SDLMain implements Runnable {
         SDLActivity.mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                SDLActivity.mSeekBar.setMax(100);
-                SDLActivity.mSeekBar.setProgress(50);
+                SDLActivity.mSeekBar.setEnabled(true);
                 SDLActivity.mFullTime = SDLActivity.getFullTime() / 1000;
+                if (SDLActivity.mFullTime <= 0) {
+                    SDLActivity.mSeekBar.setVisibility(View.GONE);
+                    return;
+                }
+                SDLActivity.mSeekBar.setVisibility(View.VISIBLE);
+                SDLActivity.mSeekBar.setMax(100);
 
                 SDLActivity.mTimer.schedule(new TimerTask() {
                     @Override
@@ -1205,6 +1227,15 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         return false;
     }
 
+    private float mStartX = 0;
+    private float mStartY = 0;
+    private float mTotalX = 0;
+    private float mTotalY = 0;
+    private int pointerFingerId;
+    private float x;
+    private float y;
+    private float p;
+
     // Touch events
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -1219,11 +1250,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         switch(action) {
             case MotionEvent.ACTION_MOVE:
                 for (i = 0; i < pointerCount; i++) {
-                    pointerFingerId = event.getPointerId(i);
-                    x = event.getX(i) / mWidth;
-                    y = event.getY(i) / mHeight;
-                    p = event.getPressure(i);
-                    SDLActivity.onNativeTouch(touchDevId, pointerFingerId, action, x, y, p);
+                    handleTouch(event, touchDevId, action, i);
                 }
                 break;
 
@@ -1231,27 +1258,20 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
             case MotionEvent.ACTION_DOWN:
                 // Primary pointer up/down, the index is always zero
                 i = 0;
+                mStartX = event.getX(i);
+                mStartY = event.getY(i);
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_POINTER_DOWN:
                 // Non primary pointer up/down
                 if (i == -1) {
                     i = event.getActionIndex();
                 }
-
-                pointerFingerId = event.getPointerId(i);
-                x = event.getX(i) / mWidth;
-                y = event.getY(i) / mHeight;
-                p = event.getPressure(i);
-                SDLActivity.onNativeTouch(touchDevId, pointerFingerId, action, x, y, p);
+                handleTouch(event, touchDevId, action, i);
                 break;
 
             case MotionEvent.ACTION_CANCEL:
                 for (i = 0; i < pointerCount; i++) {
-                    pointerFingerId = event.getPointerId(i);
-                    x = event.getX(i) / mWidth;
-                    y = event.getY(i) / mHeight;
-                    p = event.getPressure(i);
-                    SDLActivity.onNativeTouch(touchDevId, pointerFingerId, MotionEvent.ACTION_UP, x, y, p);
+                    handleTouch(event, touchDevId, MotionEvent.ACTION_UP, i);
                 }
                 break;
 
@@ -1260,6 +1280,32 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         }
 
         return true;
+    }
+
+    private void handleTouch(MotionEvent event, int touchDevId, int action, int i) {
+        pointerFingerId = event.getPointerId(i);
+        x = event.getX(i) - mStartX;
+        y = event.getY(i) - mStartY;
+        p = event.getPressure(i);
+
+        mStartX = event.getX(i);
+        mStartY = event.getY(i);
+
+        mTotalX += x;
+        mTotalY += y;
+
+        if (mTotalX > mWidth) {
+            mTotalX = mWidth;
+        }
+        if (mTotalX < 0) {
+            mTotalX = 0;
+        }
+
+        x = mTotalX / mWidth;
+        y = mTotalY / mHeight;
+
+        SDLActivity.mCurTime = (long) (SDLActivity.mFullTime * x);
+        SDLActivity.onNativeTouch(touchDevId, pointerFingerId, action, x, y, p);
     }
 
     // Sensor events
