@@ -1013,6 +1013,9 @@ class SDLMain implements Runnable {
                 SDLActivity.mTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+                        if (SDLActivity.mIsPaused) {
+                            return;
+                        }
                         SDLActivity.mCurTime += 10;
                         SDLActivity.mCurProgress = (int)(SDLActivity.mCurTime * 100 / SDLActivity.mFullTime);
                         SDLActivity.mSeekBar.setProgress(SDLActivity.mCurProgress);
