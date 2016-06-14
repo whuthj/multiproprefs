@@ -53,7 +53,7 @@ public class SDLActivity extends Activity {
     protected static ViewGroup mLayout;
     protected static SeekBar mSeekBar;
     protected static SDLJoystickHandler mJoystickHandler;
-    protected static String[] args;
+    protected static String[] args = null;
 
     // This is what SDL runs in. It invokes SDL_main(), eventually
     protected static Thread mSDLThread;
@@ -122,9 +122,13 @@ public class SDLActivity extends Activity {
         mIsPaused = false;
         mIsSurfaceReady = false;
         mHasFocus = true;
+        mSeekBar = null;
+        mCurTime = 0;
+        mFullTime = 0;
+        mCurProgress = 0;
     }
 
-    protected static Timer mTimer = new Timer();
+    protected static Timer mTimer = null;
 
     // Setup
     @Override
@@ -214,6 +218,7 @@ public class SDLActivity extends Activity {
         btnQuit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SDLActivity.onNativeKeyDown(4);
                 finish();
             }
         });
@@ -237,6 +242,8 @@ public class SDLActivity extends Activity {
                 SDLActivity.onNativeTouch(0, 0, 0, x, 0, 0);
             }
         });
+
+        mTimer = new Timer();
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -325,7 +332,10 @@ public class SDLActivity extends Activity {
             Log.v("SDL", "Finished waiting for SDL thread");
         }
 
-        mTimer.cancel();
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer = null;
+        }
 
         super.onDestroy();
         // Reset everything in case the user re opens the app
@@ -378,7 +388,7 @@ public class SDLActivity extends Activity {
 
     /* The native thread has finished */
     public static void handleNativeExit() {
-        SDLActivity.mSDLThread = null;
+        //SDLActivity.mSDLThread = null;
         mSingleton.finish();
     }
 
@@ -997,7 +1007,6 @@ public class SDLActivity extends Activity {
 class SDLMain implements Runnable {
     @Override
     public void run() {
-        // Runs SDL_main()
         SDLActivity.mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -1010,20 +1019,30 @@ class SDLMain implements Runnable {
                 SDLActivity.mSeekBar.setVisibility(View.VISIBLE);
                 SDLActivity.mSeekBar.setMax(100);
 
+                if (SDLActivity.mTimer == null) {
+                    SDLActivity.mTimer = new Timer();
+                }
+
                 SDLActivity.mTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         if (SDLActivity.mIsPaused) {
                             return;
                         }
+
+                        if (SDLActivity.mCurProgress == 100) {
+                            return;
+                        }
+
                         SDLActivity.mCurTime += 10;
-                        SDLActivity.mCurProgress = (int)(SDLActivity.mCurTime * 100 / SDLActivity.mFullTime);
+                        SDLActivity.mCurProgress = (int) (SDLActivity.mCurTime * 100 / SDLActivity.mFullTime);
                         SDLActivity.mSeekBar.setProgress(SDLActivity.mCurProgress);
                     }
                 }, 10, 10);
             }
-        }, 1000);
+        }, 800);
 
+        // Runs SDL_main()
         SDLActivity.nativeInit(SDLActivity.mSingleton.getArguments());
 
         //Log.v("SDL", "SDL thread terminated");
@@ -1161,7 +1180,7 @@ class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
         SDLActivity.onNativeSurfaceChanged();
 
 
-        if (SDLActivity.mSDLThread == null) {
+        if (SDLActivity.mSDLThread == null && !SDLActivity.mExitCalledFromJava) {
             // This is the entry point to the C app.
             // Start up the C app thread and enable sensor input for the first time
 
