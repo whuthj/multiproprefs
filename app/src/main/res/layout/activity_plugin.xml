@@ -24,11 +24,22 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="切换到插件"
+        android:text="切换到hello插件"
         android:id="@+id/button"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:singleLine="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="切换到world插件"
+        android:id="@+id/buttonWorld"
+        android:layout_below="@+id/tvHaHa"
+        android:layout_alignLeft="@+id/tvHaHa"
+        android:layout_alignStart="@+id/tvHaHa"
+        android:singleLine="true" />
 
     <LinearLayout
         android:orientation="vertical"

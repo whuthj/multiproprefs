@@ -38,6 +38,7 @@ import org.acdd.android.task.Coordinator;
 import org.acdd.android.task.Coordinator.TaggedRunnable;
 import org.acdd.framework.ACDD;
 import org.acdd.framework.InternalConstant;
+import org.acdd.framework.PluginRemoveListener;
 import org.acdd.runtime.Globals;
 import org.acdd.bundleInfo.BundleInfoList;
 import org.acdd.log.Logger;
@@ -80,6 +81,10 @@ public class ACDDInitializer {
             Log.e("ACDDInitializer", "Could not init atlas framework !!!", e);
             throw new RuntimeException("atlas initialization fail" + e.getMessage());
         }
+    }
+
+    public static void setPluginRemoveListener(PluginRemoveListener listener) {
+        ACDD.getInstance().setPluginRemoveListener(listener);
     }
 
     public void startUp() {

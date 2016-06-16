@@ -32,8 +32,9 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 
+import org.acdd.android.compat.ICrashReporter;
+import org.acdd.framework.ACDD;
 import org.acdd.framework.BundleImpl;
-import org.acdd.framework.Framework;
 import org.acdd.framework.InternalConstant;
 import org.acdd.hack.ACDDHacks;
 import org.acdd.log.Logger;
@@ -167,10 +168,19 @@ public class BundleLifecycleHandler implements SynchronousBundleListener {
             if (packageLite != null) {
                 String applicationClassName = packageLite.applicationClassName;
                 if (StringUtils.isNotEmpty(applicationClassName)) {
+                    Application application = null;
                     try {
-                        newApplication(applicationClassName, bundleImpl.getClassLoader()).onCreate();
-                    } catch (Throwable throwable) {
-                        log.error("Error to start application >>>", throwable);
+                        application = newApplication(applicationClassName, bundleImpl.getClassLoader());
+                    } catch (Exception e) {
+                        log.error("Error to start application >>>", e);
+                    }
+                    if (application != null) {
+                        try {
+                            application.onCreate();
+                        } catch (Exception ex) {
+                            ACDD.getInstance().reportCrash(ICrashReporter.ACDD_CREATE_PLUGIN_APPLICATION_ERROR, ex);
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
             }

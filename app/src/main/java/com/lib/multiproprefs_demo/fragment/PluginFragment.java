@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +19,12 @@ import com.hujun.common.IPluginCommand;
 import com.hujun.common.PluginCommand;
 import com.lib.multiproprefs.MPSharedPrefs;
 import com.lib.multiproprefs_demo.R;
+import com.lib.multiproprefs_demo.model.HelloPluginInfo;
+import com.lib.multiproprefs_demo.model.WorldPluginInfo;
 import com.lib.multiproprefs_demo.ndk.NdkFunc;
+import com.lib.multiproprefs_demo.vo.PluginInfo;
 
 import org.acdd.framework.ACDD;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +33,7 @@ import java.lang.reflect.Method;
 public class PluginFragment extends BaseFragment {
 
     private NdkFunc mNdkFunc = new NdkFunc();
+    private Handler mHandler = new Handler();
 
     public PluginFragment() {
         // Required empty public constructor
@@ -49,7 +54,8 @@ public class PluginFragment extends BaseFragment {
     }
 
     private void init() {
-        initPlugin();
+        installPlugin(HelloPluginInfo.getPluginInfo());
+        installPlugin(WorldPluginInfo.getPluginInfo());
 
         try {
             Drawable drawable = PluginCommand.getCommand(PluginCommand.CMD_HELLO).getTestDrawable(getContext());
@@ -69,7 +75,7 @@ public class PluginFragment extends BaseFragment {
         }
 
 
-        Button btn = (Button) mMainView.findViewById(com.lib.multiproprefs_demo.R.id.button);
+        Button btn = (Button) mMainView.findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,14 +88,28 @@ public class PluginFragment extends BaseFragment {
                 }
             }
         });
+
+        Button btnWorld = (Button) mMainView.findViewById(R.id.buttonWorld);
+        btnWorld.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent intPlugin = new Intent();
+                    intPlugin.setClassName(getActivity(), "com.hujun.worldplugin.MainActivity");
+                    startActivity(intPlugin);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
-    private void initPlugin() {
+    private void installPlugin(PluginInfo info) {
         FileInputStream ins = null;
         try {
-            File deployFile = new File("/sdcard/helloplugin.so");
+            File deployFile = new File(info.getFilePath());
             ins = new FileInputStream(new File(deployFile.getAbsolutePath()));
-            ACDD.getInstance().installBundle("com.hujun.helloplugin", ins);
+            ACDD.getInstance().installBundle(info.getPkgName(), ins);
         } catch (Exception exe) {
             exe.printStackTrace();
         } finally {
@@ -100,14 +120,23 @@ public class PluginFragment extends BaseFragment {
             }
         }
 
+        initPlugin(info);
+    }
+
+    private void initPlugin(PluginInfo info) {
         try {
-            Class<?> clazz = Class.forName("com.hujun.helloplugin.PluginApplication",
-                    false, ACDD.getInstance().getBundleClassLoader("com.hujun.helloplugin"));
+            String appClzz = info.getAppClzz();
+            if (TextUtils.isEmpty(appClzz)) {
+                return;
+            }
+
+            Class<?> clazz = Class.forName(info.getAppClzz(),
+                    false, ACDD.getInstance().getBundleClassLoader(info.getPkgName()));
             Method initMethod = clazz.getMethod("init");
             IPluginCommand cmd = (IPluginCommand)initMethod.invoke(null);
 
             String str =  (String) cmd.invoke(123);
-            TextView tv_1 = (TextView) mMainView.findViewById(com.lib.multiproprefs_demo.R.id.txt_1);
+            TextView tv_1 = (TextView) mMainView.findViewById(R.id.txt_1);
             tv_1.setText(str);
         } catch (Throwable e) {
             e.printStackTrace();

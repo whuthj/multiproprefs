@@ -123,6 +123,10 @@ public class ACDD {
         // Framework.initialize(properties);
     }
 
+    public void setPluginRemoveListener(PluginRemoveListener listener) {
+        Framework.setPluginRemoveListener(listener);
+    }
+
     /**
      *@since 1.0.0
      * **/

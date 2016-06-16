@@ -38,6 +38,7 @@ import android.os.Handler.Callback;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.util.Log;
 
 import org.acdd.android.compat.ThrowableCustomHandler;
 import org.acdd.bundleInfo.BundleInfoList;
@@ -130,8 +131,26 @@ public class AndroidHack {
         public boolean handleMessage(Message message) {
             try {
                 AndroidHack.ensureLoadedApk();
-
-                if (message.what == CREATE_SERVICE) {
+                if (message.what == LAUNCH_ACTIVITY) {
+                    Field intentField = message.obj.getClass().getDeclaredField("intent");
+                    intentField.setAccessible(true);
+                    Intent intent = (Intent)intentField.get(message.obj);
+                    String component = intent.getComponent().getClassName();
+                    String bundleName = BundleInfoList.getInstance().getBundleNameForComponet(component);
+                    if (bundleName != null) {
+                        Bundle bundle = Framework.getBundle(bundleName);
+                        if (bundle == null) {
+                            bundle = Framework.tryLoadBundleInstance(bundleName);
+                            if (bundle == null) {
+                                ClassLoadFromBundle.checkInstallBundleIfNeed(component);
+                                bundle = Framework.getBundle(bundleName);
+                            }
+                        }
+                        if (bundle != null) {
+                            bundle.start();
+                        }
+                    }
+                } else if (message.what == CREATE_SERVICE) {
                     try {
                         Field infoField = message.obj.getClass().getDeclaredField("info");
                         infoField.setAccessible(true);
@@ -168,8 +187,11 @@ public class AndroidHack {
                         if (bundleName != null) {
                             Bundle bundle = Framework.getBundle(bundleName);
                             if (bundle == null) {
-                                ClassLoadFromBundle.checkInstallBundleIfNeed(component);
-                                bundle = Framework.getBundle(bundleName);
+                                bundle = Framework.tryLoadBundleInstance(bundleName);
+                                if (bundle == null) {
+                                    ClassLoadFromBundle.checkInstallBundleIfNeed(component);
+                                    bundle = Framework.getBundle(bundleName);
+                                }
                             }
                             if (bundle != null) {
                                 bundle.start();

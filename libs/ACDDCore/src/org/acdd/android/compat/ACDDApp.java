@@ -36,11 +36,13 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteException;
 import android.os.Build.VERSION;
 import android.os.Process;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.acdd.android.initializer.ACDDInitializer;
 import org.acdd.android.initializer.BundleParser;
+import org.acdd.framework.PluginRemoveListener;
 import org.acdd.runtime.Globals;
 import org.acdd.runtime.ContextImplHook;
 import org.acdd.util.ACDDUtils;
@@ -84,17 +86,26 @@ public abstract class ACDDApp extends Application {
         }
 
         mACDDInitializer = new ACDDInitializer(this, getPackageName(), isPurgeUpdate());
-
+        mACDDInitializer.setPluginRemoveListener(getPluginRemoveListener());
         mACDDInitializer.init();
     }
 
+    /**
+     * 判断宿主是否升级
+     * @return
+     */
     protected abstract boolean isPurgeUpdate();
+
+    protected abstract PluginRemoveListener getPluginRemoveListener();
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        long start = System.currentTimeMillis();
         this.mACDDInitializer.startUp();
+        long end = System.currentTimeMillis();
+        Log.e("Test", (end - start) + "ms");
 
     }
 

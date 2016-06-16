@@ -29,6 +29,7 @@ package org.acdd.framework.bundlestorage;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.acdd.bundleInfo.BundleInfoList;
 import org.acdd.dexopt.InitExecutor;
@@ -135,7 +136,8 @@ public class BundleArchiveRevision {
         this.revisionNum = revisionNum;
         this.revisionDir = revisionDir;
         if (!this.revisionDir.exists()) {
-            this.revisionDir.mkdirs();
+            boolean bRet = this.revisionDir.mkdirs();
+            Log.e("Test", "创建插件目录：" + this.revisionDir + "，结果：" + bRet);
         }
         this.revisionLocation = FILE_PROTOCOL;
         this.bundleFile = new File(revisionDir, BUNDLE_FILE_NAME);

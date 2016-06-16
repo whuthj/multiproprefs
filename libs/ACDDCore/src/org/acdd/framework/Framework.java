@@ -27,9 +27,13 @@
 package org.acdd.framework;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Process;
+import android.text.TextUtils;
+import android.util.Log;
 
 import org.acdd.android.compat.ICrashReporter;
 import org.acdd.android.initializer.BundleRestoreChecker;
@@ -57,6 +61,7 @@ import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.service.startlevel.StartLevel;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -110,6 +115,7 @@ public final class Framework {
     static ClassLoader systemClassLoader;
     static List<String> writeAheads = new ArrayList<String>();
     static BundleRestoreChecker bundleRestoreChecker;
+    static PluginRemoveListener pluginRemoveListener;
 
 
     private static final class SystemBundle implements Bundle,  StartLevel {
@@ -450,11 +456,13 @@ public final class Framework {
             bundleImpl = (BundleImpl) getBundle(location);
             if (bundleImpl != null) {
                 BundleLock.WriteUnLock(location);
+                Log.e("Test", "直接加载插件：" + location);
 
             } else {
                 mBundleArchiveFile = new File(STORAGE_LOCATION, location);
                 ACDDFileLock.getInstance().LockExclusive(mBundleArchiveFile);
                 if (mBundleArchiveFile.exists()) {
+                    Log.e("Test", "直接加载插件：" + location);
                     bundleImpl = restoreFromExistedBundle(location, mBundleArchiveFile);
                     if (bundleImpl != null) {
                         BundleLock.WriteUnLock(location);
@@ -481,6 +489,10 @@ public final class Framework {
         }
 
         return bundleImpl;
+    }
+
+    public static void setPluginRemoveListener(PluginRemoveListener listener) {
+        pluginRemoveListener = listener;
     }
 
     public static Bundle tryLoadBundleInstance(String location) {
@@ -544,7 +556,7 @@ public final class Framework {
             if (init && file.exists()) {
                 System.out.println("Purging storage ...");
                 try {
-                    deleteDirectory(file);
+                    deletePluginsDirectory(file);
                 } catch (Throwable e) {
                     StringBuilder examInfo = new StringBuilder();
                     try {
@@ -588,16 +600,21 @@ public final class Framework {
             }
 
             try {
-                file.mkdirs();
+                if (file.exists()) {
+                    startlevel = restoreProfile();
+                } else {
+                    file.mkdirs();
+                    startlevel = getProperty("osgi.startlevel.framework", 1);
+                }
                 Integer.getInteger("osgi.maxLevel", 1);
                 initStartlevel = getProperty("osgi.startlevel.bundle", 1);
-                startlevel = getProperty("osgi.startlevel.framework", 1);
             } catch (Throwable e) {
                 throw new RuntimeException("mkdirs failed", e);
             }
         }
 
         notifyFrameworkListeners(FrameworkEvent.STARTING, systemBundle, null);
+
         systemBundle.setLevel(getBundles().toArray(new Bundle[bundles.size()]), startlevel, false);
         frameworkStartupShutdown = false;
 
@@ -620,6 +637,19 @@ public final class Framework {
             notifyFrameworkListeners(FrameworkEvent.STARTED, systemBundle, null);
         } catch (Throwable e) {
             throw new RuntimeException("notifyFrameworkListeners failed", e);
+        }
+    }
+
+    private static boolean pluginShouldRemoved(String pluginPkg) {
+        return pluginRemoveListener != null && pluginRemoveListener.shouldRemoved(pluginPkg);
+    }
+
+    public static void deletePluginsDirectory(File directory) {
+        File[] listFiles = directory.listFiles();
+        for (int i = 0; i < listFiles.length; i++) {
+            if (listFiles[i].isDirectory() && pluginShouldRemoved(listFiles[i].getName())) {
+                deleteDirectory(listFiles[i]);
+            }
         }
     }
 
@@ -766,6 +796,74 @@ public final class Framework {
         return properties == null ? defaultValue : (String) properties.get(key);
     }
 
+    public static String getPluginVersion(String pluginPkg) {
+        StringBuilder version = new StringBuilder();
+        if (TextUtils.isEmpty(pluginPkg)) {
+            return version.toString();
+        }
+
+        File verFile = new File(STORAGE_LOCATION + File.separatorChar + pluginPkg +
+                File.separatorChar + InternalConstant.ACDD_PLUGIN_VERFILE);
+        if (!verFile.exists()) {
+            return version.toString();
+        }
+
+        FileInputStream inputStream = null;
+        try {
+            int len;
+            byte[] buffer = new byte[64];
+            ByteArrayOutputStream tmp = new ByteArrayOutputStream();
+            inputStream = new FileInputStream(verFile);
+            while ((len = inputStream.read(buffer)) > 0) {
+                tmp.write(buffer, 0, len);
+            }
+            byte[] versionByte = tmp.toByteArray();
+            version.append(new String(versionByte, 0, versionByte.length, "UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+
+        return version.toString();
+    }
+
+    public static void setPluginVersion(String pluginPkg, String version) {
+        if (TextUtils.isEmpty(pluginPkg) || TextUtils.isEmpty(version)) {
+            return ;
+        }
+
+        File verFile = new File(STORAGE_LOCATION + File.separatorChar + pluginPkg +
+                File.separatorChar + InternalConstant.ACDD_PLUGIN_VERFILE);
+        if (!verFile.exists()) {
+            try {
+                verFile.createNewFile();
+            } catch (IOException e) {
+                return ;
+            }
+        }
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(verFile);
+            outputStream.write(version.getBytes("UTF-8"));
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (IOException e) {
+            }
+        }
+    }
+
     protected static void warning(String message) throws RuntimeException {
         if (getProperty(InternalConstant.ACDD_STRICT_STARTUP, false)) {
             throw new RuntimeException(message);
@@ -905,6 +1003,7 @@ public final class Framework {
     }
 
     public static void deleteDirectory(File mDirectory) {
+        Log.e("Test", "删除插件目录：" + mDirectory.getAbsolutePath());
         File[] listFiles = mDirectory.listFiles();
         for (int i = 0; i < listFiles.length; i++) {
             if (listFiles[i].isDirectory()) {

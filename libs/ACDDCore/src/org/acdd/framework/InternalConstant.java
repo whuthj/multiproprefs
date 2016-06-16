@@ -54,7 +54,9 @@ public class InternalConstant {
 
     public static final String ACDD_STRICT_STARTUP = "org.acdd.strictStartup";
     public static final String ACDD_AUTO_LOAD = "org.acdd.auto.load";
-    public  static  final  String ACDD_CONFIGURE=".ACDD_configs";
+    public static final String ACDD_CONFIGURE=".ACDD_configs";
+    public static final String ACDD_PLUGIN_VERFILE = "plugin_custom_ver";
+
     public static Class<?> BundleNotFoundActivity = null;
     /********disable compile code****/
     public  static  final  boolean CODE_ENABLE_COMPILE=false;

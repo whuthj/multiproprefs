@@ -12,7 +12,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="哈哈，插件"
+        android:text="Hello，插件1"
         android:id="@+id/button2"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
